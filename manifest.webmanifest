@@ -1,0 +1,19 @@
+{
+  "name": "Diésel — Control de combustible",
+  "short_name": "Diésel",
+  "description": "Control de repostajes, consumo y gastos de combustible",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1017",
+  "theme_color": "#0b1017",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
