@@ -54,6 +54,8 @@
       <div class="stat"><div class="label">GASTO MES ANTERIOR</div><div class="value" id="previousMonthSpend">—</div><div class="foot" id="previousMonthLabel">Total del mes anterior</div></div>
       <div class="stat"><div class="label">GASTO ESTE AÑO</div><div class="value" id="yearSpend">—</div><div class="foot" id="yearKm">— km registrados</div></div>
       <div class="stat"><div class="label">CONSUMO MEDIO</div><div class="value" id="avgConsumption">—</div><div class="foot" id="costPerKm">Coste/km: —</div></div>
+      <div class="stat"><div class="label">DÍAS DESDE EL ÚLTIMO REPOSTAJE</div><div class="value" id="daysSinceLast">—</div><div class="foot" id="lastRefuelDate">Sin repostajes registrados</div></div>
+      <div class="stat"><div class="label">COSTE POR KM DEL ÚLTIMO REPOSTAJE</div><div class="value" id="lastRefuelCostKm">—</div><div class="foot" id="lastRefuelCostKmNote">Necesita dos repostajes con kilómetros</div></div>
     </section>
     <div class="layout">
       <section class="panel formpanel" id="addPanel">
@@ -122,6 +124,25 @@
     $('yearSpend').textContent=eur(s.filter(r=>inPeriod(r.date,'year')).reduce((a,r)=>a+money(r),0));$('yearKm').textContent=`${num(kmYear,0)} km este año`;
     const totalKm=ds.reduce((a,x)=>a+x.km,0),totalL=ds.reduce((a,x)=>a+x.liters,0),totalCost=ds.reduce((a,x)=>a+x.cost,0);
     $('avgConsumption').textContent=totalKm>0?`${num(totalL/totalKm*100,2)} L/100 km`:'—';$('costPerKm').textContent=`Coste/km: ${totalKm>0?eur(totalCost/totalKm):'—'}`;
+    const latest = s.length ? s[s.length-1] : null;
+    if (latest) {
+      const elapsed = Math.max(0, daysBetween(latest.date, localISO()));
+      $('daysSinceLast').textContent = `${elapsed} ${elapsed===1?'día':'días'}`;
+      $('lastRefuelDate').textContent = `Último repostaje: ${dateStr(latest.date)}`;
+    } else {
+      $('daysSinceLast').textContent = '—';
+      $('lastRefuelDate').textContent = 'Sin repostajes registrados';
+    }
+    const previous = s.length > 1 ? s[s.length-2] : null;
+    const lastKm = previous && Number(latest.odometer) > Number(previous.odometer)
+      ? Number(latest.odometer) - Number(previous.odometer) : 0;
+    if (latest && lastKm > 0) {
+      $('lastRefuelCostKm').textContent = eur(money(latest)/lastKm);
+      $('lastRefuelCostKmNote').textContent = `${eur(money(latest))} ÷ ${num(lastKm,0)} km desde el repostaje anterior`;
+    } else {
+      $('lastRefuelCostKm').textContent = '—';
+      $('lastRefuelCostKmNote').textContent = 'Necesita dos repostajes con kilómetros crecientes';
+    }
     const cd=chartData();spendChart=drawChart('spendChart',spendChart,cd.labels,cd.data,'Gasto','#c8ff4d',eur);
     $('spendTabs').querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.period===spendPeriod));
     consumptionChart=drawChart('consumptionChart',consumptionChart,ds.map(x=>dateStr(x.date)),ds.map(x=>Number(x.consumption.toFixed(2))),'Consumo','#71b7ff',v=>`${num(v,2)} L/100 km`);
